@@ -1,0 +1,47 @@
+<%- include('partials/heads') %>
+
+<div class="todo-image">
+  <img class="todo-img" src="images/2560139.jpg" alt="" />
+</div>
+<div class="jumbotron text-center">
+  <div class="container todo-container">
+    <div class="title-area">
+      <h1>Videos</h1>
+      <img class="small" src="images/pngwing.com (2).png" alt="" />
+    </div>
+    
+    <div class="todo-message">
+        <% for (let i = 0; i < videos.length; i++) { %>
+          <p><a href="<%= videos[i].url %>"><%= videos[i].url %></a></p>
+         
+        <% } %>
+      </div>
+
+    <hr />
+    
+    <a class="btn btn-light btn-lg logout" href="/logout" role="button"
+      >Log Out</a
+    >
+    
+  </div>
+</div>
+
+<script>
+  // Wait for the page to finish rendering
+  window.addEventListener("load", function () {
+    // Select the secret-message element
+    var secretMessage = document.querySelector(".todo-message");
+
+    // Scroll the element to the bottom
+    secretMessage.scrollTop = secretMessage.scrollHeight;
+
+  });
+  
+ 
+</script>
+
+
+
+<%- include('partials/foter') %>      
+
+

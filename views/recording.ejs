@@ -1,0 +1,167 @@
+<%- include('partials/heading') %>
+<div class="parent">
+<div class="video">
+<video id="cameraStream" autoplay></video>
+</div>
+  <button id="startCameraRecording">Start Camera Recording</button>
+  <button id="startScreenRecording">Start Screen Recording</button>
+  <button name="stopRecording"  id="stopRecording" disabled>Stop Recording</button>
+</div>
+
+  <script>
+    let mediaRecorder;
+    let recordedChunks = [];
+    let cameraStream;
+    let screenStream;
+
+    const cameraStreamElement = document.getElementById('cameraStream');
+    const startCameraRecordingButton = document.getElementById('startCameraRecording');
+    const startScreenRecordingButton = document.getElementById('startScreenRecording');
+    const stopRecordingButton = document.getElementById('stopRecording');
+    const parentDiv = document.querySelector('.parent');
+
+    async function startRecording(stream) {
+      cameraStreamElement.srcObject = stream;
+
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+        
+      };
+
+      mediaRecorder.onstop =async () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        console.log(blob);
+        const url = URL.createObjectURL(blob);
+      
+       try{ await sendRecordingUrlToServer(url);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'recording.webm';
+        a.textContent = 'Download Recording';
+        a.classList.add('download-button');
+        parentDiv.appendChild(a);
+       }catch(error){
+        console.log(error);
+       }
+      };
+
+      mediaRecorder.start();
+      startCameraRecordingButton.disabled = true;
+      startScreenRecordingButton.disabled = true;
+      stopRecordingButton.disabled = false;
+    }
+
+    startCameraRecordingButton.addEventListener('click', async () => {
+     try{
+      
+      const response = await fetch('/submitting', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'key1=value1&key2=value2',
+      // You can set other headers and data here if needed
+    });
+
+if(response.ok){
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      startRecording(cameraStream);
+}
+else if(response.status === 400){
+  alert("Some error occurred please Login again !")
+  window.location.href = '/login';
+}
+else{
+ 
+  console.error('Failed to start recording', response.status);
+}
+   
+    }
+    catch(error){
+      alert("You need to Allow camera and voice access");
+    }
+    });
+
+    startScreenRecordingButton.addEventListener('click', async () => {
+     try{ 
+      
+      const response = await fetch('/submitting', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'key1=value1&key2=value2',
+      // You can set other headers and data here if needed
+    });
+      
+    if(response.ok){
+      screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      startRecording(screenStream);
+    }
+    else if(response.status === 400){
+      alert("Some error occurred please Login again !")
+  window.location.href = '/login';
+}
+else{
+  
+  console.error('Failed to start recording', response.status);
+}
+     }
+     catch(error){
+      alert("You need To Provide access to Share the screen")
+     }
+    });
+
+    async function sendRecordingUrlToServer(url) {
+  
+
+    try {
+    const response = await fetch('/storeurl', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded', // Use URL-encoded form data
+      },
+      body: `recordingUrl=${encodeURIComponent(url)}`, // Encode the URL value
+    });
+
+
+      if (response.ok) {
+        console.log('Recording URL sent to the server.');
+      } else {
+        console.error('Failed to send recording URL to the server.');
+      }
+    } catch (error) {
+      console.error('An error occurred while sending recording URL to the server:', error);
+    }
+  }
+
+    stopRecordingButton.addEventListener('click', async () => {
+       
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+          cameraStreamElement.srcObject = null;
+        }
+        if (screenStream) {
+          screenStream.getTracks().forEach(track => track.stop());
+        }
+        startCameraRecordingButton.disabled = false;
+        startScreenRecordingButton.disabled = false;
+        stopRecordingButton.disabled = true;
+
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const videoUrl = URL.createObjectURL(blob);
+     
+      }
+      recordedChunks=[]
+    });
+    
+  </script>
+
+<%- include('partials/foter') %>      
