@@ -1,4 +1,4 @@
-
+require("dotenv").config()
 const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
@@ -26,13 +26,13 @@ app.use(
   })
 );
 
-
+const DATABASE_URL = process.env.DATABASE_URL
 app.use(passport.initialize());
 app.use(passport.session());
 
 // mongoose.connect("mongodb://127.0.0.1:27017/job", { useNewUrlParser: true });
 mongoose.connect(
-  "mongodb+srv://nknikhilkr73:lTimO8ISQVSlN4Jq@cluster0.zoeey6c.mongodb.net/job",
+  DATABASE_URL,
   { useNewUrlParser: true, useUnifiedTopology: true }
 );
 
